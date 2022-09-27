@@ -6,6 +6,10 @@ from scipy import stats
 
 
 def split(df):
+    '''
+    Splits the Dataframe into 50%, 30% and 20% then plots them to show no gaps or overlapping
+    Returns the splits as Train, Validate and Test.
+    '''
     train_size = int(len(df) * .5)
     validate_size = int(len(df) * .3)
     test_size = int(len(df) - train_size - validate_size)
@@ -25,6 +29,10 @@ def split(df):
     return train, validate, test
 
 def histoplots(df):
+    '''
+    Takes a Dataframe and plots out the histograms for Seoul Average Temp
+    and South Korea Average Temp. As well as one with both Variables.
+    '''
     sns.histplot(data= df, x='seoul_average',color = 'orange')
     plt.show()
     sns.histplot(data= df, x='south_korea_average_temp')
@@ -58,11 +66,20 @@ def correlation(df):
     return corr, p
 
 def create_y(train):
+    '''
+    Creates y Dataframe using seoul_average and y2 Dataframe with south_korea_average_temp
+    Returns y and y2
+    '''
     y = train.seoul_average
     y2 = train.south_korea_average_temp
     return y, y2
 
 def decomp(y, y2):
+    '''
+    Takes y and y2
+    seasonal decomposes y and y2, then plots the results.
+    returns decomposition and decomposition2
+    '''
     result = sm.tsa.seasonal_decompose(y)
     decomposition = pd.DataFrame({
         'y': result.observed,
@@ -95,6 +112,11 @@ def decomp(y, y2):
     return decomposition, decomposition2
 
 def plot_y(y, y2):
+    '''
+    Takes y and y2
+    Plots out the Average for Seoul by Month and Year, 
+    then plots the Average for South Korea by Month and Year.
+    '''
     ax = y.groupby(y.index.month).mean().plot.bar(width=.9, ec='black')
     plt.xticks(rotation=0)
     ax.set(title='Average Temperature For Seoul by Month', xlabel='Month', ylabel='Temp (C)')
@@ -114,6 +136,13 @@ def plot_y(y, y2):
     
 
 def y_tests(train):
+    '''
+    Takes in train, 
+    Creates y and y2 [create_y()],
+    plots y and y2 [plot_y()],
+    and decomposes y and y2 [decomp()]
+    y, y2 and the decomposition aren't required later so it does not return them.
+    '''
     y, y2 = create_y(train)
     plot_y(y, y2)
     decomp(y, y2)
@@ -121,6 +150,11 @@ def y_tests(train):
 
 α = 0.05
 def yearly_var(train):
+    '''
+    Takes in Train
+    Tests train data by 2005, 2006, 2007, and 2008 for whether or not they have Equal Variance.
+    Prints the result.
+    '''
     oh_five = train.seoul_average[train.index.year == 2005]
     oh_six = train.seoul_average[train.index.year == 2006]
     oh_seven = train.seoul_average[train.index.year == 2007]
@@ -133,6 +167,12 @@ def yearly_var(train):
 
 
 def ttest_five_six(train):
+    '''
+    Takes in Train,
+    As the Variance was not equal, conducts a 2-sample independent t-test
+    using data from 2005 vs. 2006.
+    Prints the results.
+    '''
     oh_five = train.seoul_average[train.index.year == 2005]
     oh_six = train.seoul_average[train.index.year == 2006]
     t, p = stats.ttest_ind(oh_five, oh_six, equal_var=False)
@@ -142,6 +182,12 @@ def ttest_five_six(train):
         print("We cannot reject the Null Hypothosis, there is little to no significant difference.")
 
 def ttest_six_seven(train):
+    '''
+    Takes in Train,
+    As the Variance was not equal, conducts a 2-sample independent t-test
+    using data from 2006 vs. 2007.
+    Prints the results.
+    '''
     oh_six = train.seoul_average[train.index.year == 2006]
     oh_seven = train.seoul_average[train.index.year == 2007]
     t, p = stats.ttest_ind(oh_six, oh_seven, equal_var=False)
@@ -151,6 +197,12 @@ def ttest_six_seven(train):
         print("We cannot reject the Null Hypothosis, there is little to no significant difference.")
 
 def ttest_seven_eight(train):
+    '''
+    Takes in Train,
+    As the Variance was not equal, conducts a 2-sample independent t-test
+    using data from 2007 vs. 2008.
+    Prints the results.
+    '''
     oh_seven = train.seoul_average[train.index.year == 2007]
     oh_eight = train.seoul_average[train.index.year == 2008]
     t, p = stats.ttest_ind(oh_seven, oh_eight, equal_var=False)

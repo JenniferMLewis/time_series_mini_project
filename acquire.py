@@ -72,6 +72,10 @@ def clean_sk(south_korea):
     return south_korea
 
 def wrangle_seoul():
+    '''
+    Uses get_seoul() and clean_df() to acquire the Seoul and South Korea Dataframes and clean them
+    return the DataFrames joined as a single DataFrame.
+    '''
     south_korea, seoul = get_seoul()
     df = clean_df(south_korea, seoul)
     return df
