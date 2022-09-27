@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
+import seaborn as sns
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 from statsmodels.tsa.api import Holt
@@ -68,10 +69,53 @@ def fb_prophet(df):
     plot_components_plotly(m, forecast)
     return train_p, validate_p, test_p
 
+def best_rmse(eval_df, train):
+    # get the min rmse for each variable
+
+    min_rmse_seoul = eval_df.groupby('target_var')['rmse'].min()[0]
+    min_rmse_sk = eval_df.groupby('target_var')['rmse'].min()[1]
+
+    # filter only the rows that match those rmse to find out 
+    # which models are best thus far
+    print(eval_df[((eval_df.rmse == min_rmse_seoul) | 
+            (eval_df.rmse == min_rmse_sk)
+            )])
+
+    for col in train.columns:
+        x = eval_df[eval_df.target_var == col]['model_type']
+        y = eval_df[eval_df.target_var == col]['rmse']
+        plt.figure(figsize=(12, 6))
+        sns.barplot(x, y)
+        plt.title(col)
+        plt.ylabel('RMSE')
+        plt.xticks(rotation=45)
+        plt.show()
+
+
+def test_model(train_pre, validate_pre, test_pre):
+    yhat_df = validate_pre + train_pre.diff(12).mean()
+    yhat_df.index = test_pre.index
+    rmse_temp = round(sqrt(mean_squared_error(test_pre['seoul_average'], yhat_df['seoul_average'])), 2)
+    rmse_sk_average_temp = round(sqrt(mean_squared_error(test_pre['south_korea_average_temp'], yhat_df['south_korea_average_temp'])), 2)
+    rmse_difference = round(sqrt(mean_squared_error(test_pre['difference'], yhat_df['difference'])), 2)
+    print("On Test:")
+    print(f"rmse - seoul_average: {rmse_temp}")
+    print(f"rmse - sk_average_temp: {rmse_sk_average_temp}")
+    print(f"rmse - difference: {rmse_difference}")
+    for col in train_pre.columns:
+        plot_and_eval_test(train_pre, validate_pre, test_pre, yhat_df, col)
 
 
 
-
+def plot_and_eval_test(train, validate, test, yhat_df, target_var):
+    plt.figure(figsize = (12,4))
+    plt.plot(train[target_var], label = 'Train', linewidth = 1)
+    plt.plot(validate[target_var], label = 'Validate', linewidth = 1)
+    plt.plot(test[target_var], label = 'Test', linewidth = 1)
+    plt.plot(yhat_df[target_var], alpha = .5, color="red")
+    plt.title(target_var)
+    plt.legend()
+    plt.show()
 
 
 
